@@ -1,0 +1,87 @@
+import uuid
+from datetime import timedelta
+
+from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+
+from apps.accounts.helpers import user_has_role
+from apps.applications.models import PolicyRegistrationMaster
+from apps.common.helpers.auth_helper import get_authenticated_user, require_role
+from apps.common.helpers.response_helper import error_response, success_response
+from .models import ReminderGeneratorDetail
+
+
+def serialize(row):
+    policy = row.policy_registration
+    profile = getattr(policy.customer, "customer_profile", None)
+    return {"id": row.pk, "reminder_no": row.reminder_no, "customer_id": policy.customer_id,
+            "customer_name": f"{profile.first_name} {profile.last_name}" if profile else policy.customer.username,
+            "email": policy.customer.email, "policy_no": policy.policy_no, "policy_name": policy.policy.policy_name,
+            "date_of_generate": row.date_of_generate.isoformat(), "date_of_sending": row.date_of_sending.isoformat() if row.date_of_sending else None,
+            "due_date": row.due_date.isoformat(), "status": row.status}
+
+
+def generate_due_reminders(today=None):
+    today = today or timezone.localdate()
+    end_date = today + timedelta(days=30)
+    policies = PolicyRegistrationMaster.objects.filter(status=PolicyRegistrationMaster.Status.ISSUED,
+                                                        next_due_date__gte=today, next_due_date__lte=end_date)
+    reminders = []
+    for policy in policies:
+        reminder, _ = ReminderGeneratorDetail.objects.get_or_create(
+            policy_registration=policy, due_date=policy.next_due_date,
+            defaults={"reminder_no": f"REM-{policy.pk}-{policy.next_due_date:%Y%m%d}"},
+        )
+        if reminder.status == ReminderGeneratorDetail.Status.PENDING:
+            sent = send_mail(
+                subject="Insurance premium due reminder",
+                message=f"Your premium for policy {policy.policy_no} is due on {policy.next_due_date:%d %B %Y}.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[policy.customer.email],
+                fail_silently=False,
+            )
+            if sent:
+                reminder.status = ReminderGeneratorDetail.Status.SENT
+                reminder.date_of_sending = today
+                reminder.save(update_fields=("status", "date_of_sending"))
+            reminders.append(reminder)
+    return reminders
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ReminderView(View):
+    http_method_names = ["get", "post"]
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method not in ("GET", "POST"):
+            return error_response("Only GET and POST methods are allowed.", status_code=405)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        user, error = get_authenticated_user(request)
+        if error:
+            return error
+        rows = ReminderGeneratorDetail.objects.select_related("policy_registration", "policy_registration__customer", "policy_registration__policy")
+        if not user_has_role(user, "ADMIN"):
+            if not user_has_role(user, "CUSTOMER"):
+                return error_response("You are not authorized to view reminders.", status_code=403)
+            rows = rows.filter(policy_registration__customer=user)
+        if request.GET.get("fun_call") in ("get_all", "get_my_reminders"):
+            return success_response("Reminders fetched successfully.", [serialize(row) for row in rows])
+        return error_response("Invalid fun_call.")
+
+    def post(self, request):
+        _, error = require_role(request, "ADMIN")
+        if error:
+            return error
+        if request.GET.get("fun_call") != "generate":
+            return error_response("Invalid fun_call.")
+        try:
+            reminders = generate_due_reminders()
+        except Exception:
+            return error_response("Reminder generation ran, but one or more emails could not be sent. Pending reminders can be retried.", status_code=502)
+        return success_response("Reminder generation completed.", {"count": len(reminders), "reminders": [serialize(row) for row in reminders]})

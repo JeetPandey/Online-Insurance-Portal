@@ -11,21 +11,26 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+from datetime import timedelta
+from corsheaders.defaults import default_headers
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t%$l&(qq-h5cli=ts*aai#4ao2ewh7qjm3rb6)g@_)pj=$olne'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or "dev-only-change-me"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+DEBUG = os.getenv("DEBUG", "True") == "True"
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 # Application definition
@@ -37,9 +42,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
+    "corsheaders",
+    "rest_framework_simplejwt.token_blacklist",
+    "apps.accounts.apps.AccountsConfig",
+    "apps.common.apps.CommonConfig",
+    "apps.policies.apps.PoliciesConfig",
+    "apps.applications.apps.ApplicationsConfig",
+    "apps.payments.apps.PaymentsConfig",
+    "apps.renewals.apps.RenewalsConfig",
+    "apps.reminders.apps.RemindersConfig",
+    "apps.staff.apps.StaffConfig",
+    "apps.reports.apps.ReportsConfig",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -73,12 +91,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.mysql"),
+        "NAME": os.getenv("DB_NAME", "online_insurance_portal"),
+        "USER": os.getenv("DB_USER", ""),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "3306"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
@@ -120,8 +141,45 @@ STATIC_URL = 'static/'
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "no-reply@sureway.example")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
+
+AUTH_USER_MODEL = "accounts.User"
+
+REST_FRAMEWORK["DEFAULT_PERMISSION_CLASSES"] = (
+    "rest_framework.permissions.IsAuthenticated",
+)
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+SIMPLE_JWT["UPDATE_LAST_LOGIN"] = True
+
+#Allowed origin servers
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+]
