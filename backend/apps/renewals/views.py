@@ -12,6 +12,7 @@ from apps.accounts.helpers import user_has_role
 from apps.applications.models import PolicyRegistrationMaster
 from apps.common.helpers.auth_helper import get_authenticated_user, require_role
 from apps.common.helpers.response_helper import error_response, success_response
+from apps.reminders.models import ReminderGeneratorDetail
 from .models import RenewalMasterDetail
 
 
@@ -20,6 +21,7 @@ def serialize(row):
     return {"id": row.pk, "renewal_no": row.renewal_no, "customer_id": policy.customer_id,
             "customer_name": policy.customer.username, "policy_no": policy.policy_no,
             "policy_name": policy.policy.policy_name, "renewal_amount": str(row.renewal_amount),
+            "payment_mode": policy.policy.payment_mode,
             "due_date": row.due_date.isoformat(), "date_of_renew": row.date_of_renew.isoformat() if row.date_of_renew else None,
             "payment_type": row.payment_type, "status": row.status}
 
@@ -71,7 +73,11 @@ class RenewalView(View):
             return error_response("Active policy not found.", status_code=404)
         due_date = policy.next_due_date
         today = timezone.localdate()
-        if due_date is None or due_date > today + timedelta(days=30) or due_date > policy.coverage_end:
+        reminder_sent = due_date and ReminderGeneratorDetail.objects.filter(
+            policy_registration=policy, due_date=due_date, status=ReminderGeneratorDetail.Status.SENT,
+        ).exists()
+        in_renewal_window = due_date and due_date <= today + timedelta(days=30)
+        if due_date is None or due_date > policy.coverage_end or (not in_renewal_window and not reminder_sent):
             return error_response("This policy is not currently within its renewal window.", status_code=400)
         try:
             row, created = RenewalMasterDetail.objects.get_or_create(

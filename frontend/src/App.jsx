@@ -6,17 +6,19 @@ import { RegisterPage } from './pages/auth/RegisterPage'
 import { ForgotPasswordPage, ResetPasswordPage } from './pages/auth/PasswordResetPages'
 import { RoleRoute } from './routes/ProtectedRoute'
 import { PortalLayout } from './components/layout/PortalLayout'
-import { PublicHome, PublicPolicyDetailsPage } from './pages/PublicHome'
+import { AboutPage, PublicHome, PublicPolicyCatalogPage, PublicPolicyDetailsPage } from './pages/PublicHome'
 import {
   AdminApplicationsPage, AdminCustomersPage, AdminDashboardPage, AdminPaymentsPage,
   AdminPoliciesPage, AdminRemindersPage, AdminReportsPage, AdminRenewalsPage, AdminStaffPage,
 } from './pages/admin/AdminPages'
 import {
   CustomerActivePoliciesPage, CustomerApplicationsPage, CustomerApplyPage, CustomerDashboardPage,
-  CustomerPaymentPage, CustomerPaymentsPage, CustomerPoliciesPage, CustomerReceiptPage,
+  CustomerPaymentsPage, CustomerPoliciesPage, CustomerReceiptPage,
   CustomerRemindersPage, CustomerRenewalsPage,
 } from './pages/customer/CustomerPages'
+import { CustomerPaymentPage } from './pages/customer/CustomerPaymentPage'
 import { AgentApplicationsPage, AgentDashboardPage } from './pages/AgentPages'
+
 
 function landingFor(user) {
   const roles = user?.roles || (user?.role ? [user.role] : [])
@@ -36,6 +38,9 @@ function AppRoutes() {
     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
     <Route path="/reset-password/:uid/:token" element={<ResetPasswordPage />} />
     <Route path="/policies/:policyId" element={<PublicPolicyDetailsPage />} />
+    <Route path="/policies" element={<PublicPolicyCatalogPage />} />
+    <Route path="/about" element={<AboutPage />} />
+
 
     <Route path="/admin" element={<RoleRoute roles={['ADMIN']}><PortalLayout area="ADMIN" /></RoleRoute>}>
       <Route index element={<Navigate to="dashboard" replace />} />

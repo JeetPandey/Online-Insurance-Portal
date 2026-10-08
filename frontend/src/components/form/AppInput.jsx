@@ -1,4 +1,17 @@
-const AppInput = ({label,name,value,onChange,type = "text",placeholder = "",error = "",required = false,disabled = false,}) => {
+const AppInput = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  placeholder = "",
+  error = "",
+  required = false,
+  disabled = false,
+  inputMode,
+  maxLength,
+  autoComplete,
+}) => {
   return (
     <div className="form-control w-full">
       {label && (
@@ -17,6 +30,9 @@ const AppInput = ({label,name,value,onChange,type = "text",placeholder = "",erro
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
+        inputMode={inputMode}
+        maxLength={maxLength}
+        autoComplete={autoComplete}
         className={`
                     input
                     input-bordered
@@ -27,10 +43,7 @@ const AppInput = ({label,name,value,onChange,type = "text",placeholder = "",erro
 
       {error && (
         <label className="label">
-          <span
-            className="label-text-alt text-error">
-            {error}
-          </span>
+          <span className="label-text-alt text-error">{error}</span>
         </label>
       )}
     </div>

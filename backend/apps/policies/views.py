@@ -93,6 +93,8 @@ class PolicyView(View):
                 item.policy_premium = Decimal(str(item.policy_premium))
                 item.policy_term = int(item.policy_term)
                 item.minimum_age = int(item.minimum_age or 0)
+                if item.payment_mode not in PolicyDetailMaster.PaymentMode.values:
+                    return error_response("Choose Monthly or Annual premium billing.")
                 if item.maximum_age in ("", None):
                     item.maximum_age = None
                 else:

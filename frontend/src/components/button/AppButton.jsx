@@ -12,31 +12,8 @@ const AppButton = ({
   onClick,
   className = "",
 }) => {
-  const variantClasses = {
-    primary: "btn-primary",
-
-    secondary: "btn-secondary",
-
-    success: "btn-success",
-
-    warning: "btn-warning",
-
-    error: "btn-error",
-
-    outline: "btn-outline",
-
-    ghost: "btn-ghost",
-  };
-
-  const sizeClasses = {
-    xs: "btn-xs",
-
-    sm: "btn-sm",
-
-    md: "btn-md",
-
-    lg: "btn-lg",
-  };
+  const variantClasses = {primary: "btn-primary",secondary: "btn-secondary",success: "btn-success",warning: "btn-warning",error: "btn-error",outline: "btn-outline",ghost: "btn-ghost",};
+  const sizeClasses = {xs: "btn-xs",sm: "btn-sm",md: "btn-md",lg: "btn-lg",};
 
   return (
     <button

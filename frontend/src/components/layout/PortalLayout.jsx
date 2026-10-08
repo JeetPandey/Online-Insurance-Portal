@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { FiShield } from 'react-icons/fi'
 import { useAuth } from '../../context/useAuth'
 
 const navigation = {
@@ -26,7 +27,7 @@ export function PortalLayout({ area }) {
   const signOut = async () => { await logout(); navigate('/login', { replace: true }) }
   return <div className="portal-shell">
     <aside className={`portal-sidebar ${menuOpen ? 'portal-sidebar-open' : ''}`}>
-      <div className="portal-brand"><span className="portal-brand-mark">S</span><span>Sureway<span className="brand-dot">.</span><small>Insurance Portal</small></span></div>
+      <div className="portal-brand"><span className="portal-brand-mark"><FiShield/></span><span>Online Insurance<small>Insurance Portal</small></span></div>
       <div className="portal-area-label">{area} WORKSPACE</div>
       <nav className="portal-nav">{links.map(([label, path]) => <NavLink key={path} to={path} onClick={() => setMenuOpen(false)} className={({ isActive }) => isActive ? 'portal-nav-link active' : 'portal-nav-link'}>{label}</NavLink>)}</nav>
       <div className="portal-sidebar-foot">Synopsis-based policy servicing</div>

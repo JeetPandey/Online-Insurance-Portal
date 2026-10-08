@@ -26,17 +26,33 @@ def parse_body(request):
 
 def serialize(row):
     customer = getattr(row.customer, "customer_profile", None)
+    first_name = customer.first_name if customer else row.customer.first_name
+    middle_name = customer.middle_name if customer else ""
+    last_name = customer.last_name if customer else row.customer.last_name
     return {"id": row.pk, "auto_id": row.pk, "application_no": row.application_no,
-            "customer_id": row.customer_id, "customer_name": f"{customer.first_name} {customer.last_name}" if customer else row.customer.username,
+            "customer_id": row.customer_id, "customer_name": " ".join(value for value in (first_name, last_name) if value).strip() or row.customer.username,
+            "full_name": " ".join(value for value in (first_name, middle_name, last_name) if value).strip() or row.customer.username,
+            "username": row.customer.username,
+            "email": customer.email_id if customer and customer.email_id else row.customer.email,
+            "date_of_birth": customer.date_of_birth.isoformat() if customer and customer.date_of_birth else None,
+            "gender": customer.gender if customer else "",
+            "mobile_number": customer.mobile_number if customer else "",
+            "phone_number": customer.phone_number if customer else "",
+            "address": customer.address if customer else "",
+            "city": customer.city if customer else "",
             "policy_id": row.policy_id, "policy_name": row.policy.policy_name, "plan_no": row.policy.plan_no,
             "assigned_agent_id": row.assigned_agent_id,
             "policy_no": row.policy_no, "proposal_no": row.proposal_no,
             "proposal_date": row.proposal_date.isoformat() if row.proposal_date else None,
             "premium_amount": str(row.premium_amount), "payment_type": row.payment_type,
+            "payment_mode": row.policy.payment_mode,
             "status": row.status, "decision_reason": row.decision_reason,
             "submitted_at": row.submitted_at.isoformat(), "coverage_start": row.coverage_start.isoformat() if row.coverage_start else None,
             "coverage_end": row.coverage_end.isoformat() if row.coverage_end else None,
-            "next_due_date": row.next_due_date.isoformat() if row.next_due_date else None}
+            "next_due_date": row.next_due_date.isoformat() if row.next_due_date else None,
+            "can_renew_early": bool(row.next_due_date and row.reminders.filter(
+                due_date=row.next_due_date, status="SENT",
+            ).exists())}
 
 
 @method_decorator(csrf_exempt, name="dispatch")

@@ -1,5 +1,5 @@
 import TableEmptyState from "./TableEmptyState";
-import TableLoader from "./TableLoader.jsx"
+import TableLoader from "./TableLoader.jsx";
 
 const AppTable = ({
   columns = [],
@@ -9,8 +9,7 @@ const AppTable = ({
   onRowClick,
 }) => {
   return (
-    <div
-      className="w-full overflow-x-auto bg-base-100 rounded-xl border border-base-300 ">
+    <div className="w-full overflow-x-auto bg-base-100 rounded-xl border border-base-300 ">
       <table className="table table-zebra">
         <thead>
           <tr>

@@ -33,10 +33,12 @@ export const portalService = {
   createRenewal: (policy_id) => post('/renewals/', 'create', { policy_id }),
   reminders: () => get('/reminders/', 'get_all'),
   generateReminders: () => post('/reminders/', 'generate'),
+  sendPolicyReminder: (policy_id) => post('/reminders/', 'send_policy_reminder', { policy_id }),
   staff: (params) => get('/staff/', 'get_all', params),
   createAgent: (values) => post('/staff/', 'create_agent', values),
   setStaffStatus: (id, is_active) => post('/staff/', 'set_status', { id, is_active }),
   report: (month) => get('/reports/', 'get', { month }),
+  downloadReport: (month) => api.get('/reports/', { params: { fun_call: 'download_pdf', month }, responseType: 'blob' }).then((response) => response.data),
   saveReport: (month) => post('/reports/', 'save', { month }),
 }
 

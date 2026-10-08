@@ -8,21 +8,7 @@ const IconButton = ({
   className = "",
 }) => {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={`
-                btn
-                btn-${variant}
-                btn-${size}
-                btn-square
-                ${className}
-            `}
-      title={tooltip}
-    >
-      {icon}
-    </button>
+    <button type="button" onClick={onClick} disabled={disabled} className={`btn btn-${variant} btn-${size} btn-square ${className} `}title={tooltip}>{icon}</button>
   );
 };
 

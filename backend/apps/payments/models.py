@@ -25,7 +25,6 @@ class PaymentMasterDetail(models.Model):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.INITIATED)
     failure_reason = models.CharField(max_length=255, blank=True)
     date_of_payment = models.DateTimeField(null=True, blank=True)
-    card_last4 = models.CharField(max_length=4, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -34,3 +33,33 @@ class PaymentMasterDetail(models.Model):
 
     def __str__(self):
         return self.receipt_no or self.transaction_reference
+
+
+class CreditCardTransactionDetail(models.Model):
+    payment = models.OneToOneField(PaymentMasterDetail, on_delete=models.CASCADE, related_name="card_detail")
+    cardholder_name = models.CharField(max_length=100)
+    card_network = models.CharField(max_length=20)
+    last_four = models.CharField(max_length=4)
+
+    class Meta:
+        db_table = "credit_card_transaction_detail"
+
+
+class DemandDraftTransactionDetail(models.Model):
+    payment = models.OneToOneField(PaymentMasterDetail, on_delete=models.CASCADE, related_name="draft_detail")
+    draft_number = models.CharField(max_length=40)
+    bank_name = models.CharField(max_length=100)
+    issue_date = models.DateField()
+
+    class Meta:
+        db_table = "demand_draft_transaction_detail"
+
+
+class InternetBankingTransactionDetail(models.Model):
+    payment = models.OneToOneField(PaymentMasterDetail, on_delete=models.CASCADE, related_name="banking_detail")
+    bank_name = models.CharField(max_length=100)
+    account_holder = models.CharField(max_length=100)
+    account_last_four = models.CharField(max_length=4)
+
+    class Meta:
+        db_table = "internet_banking_transaction_detail"
