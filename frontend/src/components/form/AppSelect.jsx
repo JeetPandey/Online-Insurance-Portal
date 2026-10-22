@@ -27,15 +27,9 @@ const AppSelect = ({
         value={value ?? ""}
         onChange={onChange}
         disabled={disabled}
-        className={`
-                    select
-                    select-bordered
-                    w-full
-                    ${error ? "select-error" : ""}
-                `}
+        className={`select select-bordered w-full ${error ? "select-error" : ""}`}
       >
         <option value="">{placeholder}</option>
-
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -45,12 +39,7 @@ const AppSelect = ({
 
       {error && (
         <label className="label">
-          <span
-            className="
-                            label-text-alt
-                            text-error
-                        "
-          >
+          <span className="label-text-alt text-error">
             {error}
           </span>
         </label>
