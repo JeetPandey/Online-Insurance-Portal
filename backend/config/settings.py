@@ -32,6 +32,24 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-me")
 DEBUG = os.getenv("DEBUG", "True").strip().lower() in {
     "true", "1", "yes"
 }
+
+# Production security settings
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # Render terminates HTTPS at its proxy.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+
+    # Enable HSTS after confirming HTTPS works correctly.
+    SECURE_HSTS_SECONDS = 3600
+    
+    
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv(
