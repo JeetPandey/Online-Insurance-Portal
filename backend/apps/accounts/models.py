@@ -22,7 +22,7 @@ class Role(models.Model):
     )
 
     class Meta:
-        db_table = "tblRole"
+        db_table = "tblrole"
         app_label = "accounts"
 
     def __str__(self):
@@ -45,7 +45,7 @@ class UserProfile(models.Model):
     )
 
     class Meta:
-        db_table = "tblUserProfile"
+        db_table = "tbluserprofile"
         app_label = "accounts"
 
     def __str__(self):
@@ -68,7 +68,7 @@ class UserRole(models.Model):
     )
 
     class Meta:
-        db_table = "tblUserRole"
+        db_table = "tbluserrole"
         app_label = "accounts"
         constraints = [models.UniqueConstraint(fields=("user", "role"), name="unique_user_role")]
 
